@@ -1,32 +1,34 @@
-image: python:3.11-slim
-
-variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
-
-cache:
-  paths:
-    - .pip-cache/
+# GitLab CI/CD Pipeline Configuration
 
 stages:
   - test
   - build
   - deploy
 
+variables:
+  DOCKER_REGISTRY: us-west1-docker.pkg.dev/api-for-warp-drive
+  IMAGE_NAME: gpt-agents/agent-1
+
 test:
   stage: test
+  image: python:3.11-slim
   script:
     - pip install -r requirements.txt
     - python -m pytest tests/
 
 build:
   stage: build
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
   script:
-    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker build -t $DOCKER_REGISTRY/$IMAGE_NAME:$CI_COMMIT_SHA .
+    - docker push $DOCKER_REGISTRY/$IMAGE_NAME:$CI_COMMIT_SHA
 
 deploy:
   stage: deploy
+  image: google/cloud-sdk:latest
   script:
-    - kubectl set image deployment/agent-1 agent-1=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-  only:
-    - main
+    - gcloud auth activate-service-account --key-file=$GCP_SA_KEY
+    - gcloud container clusters get-credentials hello-cloudbuild --zone=us-west1-b
+    - kubectl set image deployment/agent-1 agent-1=$DOCKER_REGISTRY/$IMAGE_NAME:$CI_COMMIT_SHA -n gpt-agents

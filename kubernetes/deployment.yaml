@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-1
+  namespace: gpt-agents
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: agent-1
+  template:
+    metadata:
+      labels:
+        app: agent-1
+    spec:
+      containers:
+      - name: agent-1
+        image: us-west1-docker.pkg.dev/api-for-warp-drive/gpt-agents/agent-1:latest
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        env:
+        - name: AGENT_ID
+          value: "1"
+        - name: GOOGLE_CLOUD_PROJECT
+          value: "api-for-warp-drive"
+        volumeMounts:
+        - name: agent-config
+          mountPath: /app/config
+        - name: google-cloud-key
+          mountPath: /var/secrets/google
+      volumes:
+      - name: agent-config
+        configMap:
+          name: agent-1-config
+      - name: google-cloud-key
+        secret:
+          secretName: gcp-sa-key

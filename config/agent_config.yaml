@@ -1,0 +1,24 @@
+agent_id: "1"
+model_type: "gpt-4"
+temperature: 0.7
+max_tokens: 1000
+system_prompt: |
+  You are Agent 1, a specialized AI assistant focused on...
+
+knowledge_base:
+  bucket: "agent-knowledge-bases"
+  prefix: "agent-1"
+  update_frequency: "daily"
+
+api_config:
+  secret_name: "agent-1-api-key"
+  project_id: "api-for-warp-drive"
+
+monitoring:
+  metrics_enabled: true
+  log_level: "INFO"
+  prometheus_port: 9090
+  alert_thresholds:
+    error_rate: 0.01
+    latency_p95: 2.0
+    memory_usage: 800Mi
